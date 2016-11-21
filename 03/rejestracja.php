@@ -22,7 +22,7 @@
             $wszystko_OK = false;
             
             //Zmienna sesyjna błędu, dotycząca liczby znaków w nicku
-            $_SESSION['e_nick'] = "Nick musi posiadać od 3 do 20 znaków";
+            $_SESSION['e_nick'] = "Nick musi posiadać od 3 do 20 znaków!";
         }
         
         //Jeżeli zmienna "nick" zawiera inne znaki niż litery lub cyfry
@@ -33,11 +33,12 @@
             $wszystko_OK = false;
             
             //Zmienna sesyjna błędu, dotycząca rodzaju użytych znaków w nicku
-            $_SESSION['e_nick'] = "Nick może składać się tylko z liter i cyfr (bez polskich ogonków)";
+            $_SESSION['e_nick'] = "Nick może składać się tylko z liter i cyfr (bez polskich ogonków)!";
         }
         
         //-----------------------SPRAWDZANIE POPRAWNOŚCI EMAILA------------------------------------------
         
+        //Zmienna przechowująca podany w formularzu, przez użytkownika, adres e-mail
         $email = $_POST['email'];
         
         //filter_var(zmienna, filtr) - funkcja filtrująca zmienną przy pomocy filtru podanego w drugim argumencie
@@ -55,10 +56,39 @@
             $_SESSION['e_email'] = "Podaj poprawny adres e-mail!";
         }
         
+        //-----------------------SPRAWDZANIE POPRAWNOŚCI HASŁA------------------------------------------
         
+        //Zmienne przechowujące podane w formularzu, przez użytkownika, hasło
+        $haslo1 = $_POST['haslo1'];
+        $haslo2 = $_POST['haslo2'];
         
+        //Jeżeli zmienna "$hasło1" ma mniej niż 8 lub więcej niż 20 znaków
+        //Sprawdzam tylko "$haslo1" ponieważ "$haslo2" musi być takie samo
+        if((strlen($haslo1)<8) || (strlen($haslo1)>20))
+        {
+            //Flaga udanej walidacji przestawiona na "false"
+            $wszystko_OK = false;
+            
+            //Zmienna sesyjna błędu, dotycząca liczby znaków w haśle
+            $_SESSION['e_haslo'] = "Hasło musi posiadać od 8 do 20 znaków!";
+        }
         
+        //Jeżeli zmienna "$haslo1" nie jest równa zmiennej "$haslo2"
+        if($haslo1!=$haslo2)
+        {
+            //Flaga udanej walidacji przestawiona na "false"
+            $wszystko_OK = false;
+            
+            //Zmienna sesyjna błędu, dotycząca identyczności haseł
+            $_SESSION['e_haslo'] = "Podane hasła muszą być identyczne!";
+        }
         
+        //----------------------------------HASHOWANIE HASŁA---------------------------------------
+        
+        //Zmienna przechowująca hasło po zahashowaniu
+        //Funkacja hashująca, "password_hash" jako argumenty przyjmuje co hashujemy i w jaki sposób
+        //Stała PASSWORD_DEFAULT oznacza "Użyj najsilniejszego algorytmu jaki jest dostępny"
+        $haslo_hash = password_hash($haslo1, PASSWORD_DEFAULT);
         
         
         
@@ -140,6 +170,20 @@
         ?>
         
         Twoje hasło: <br/><input type="password" name="haslo1" /><br/>
+        
+        <?php
+            
+            //Jeżeli jest ustawiona zmienna sesyjna błedu "e_haslo"
+            if(isset($_SESSION['e_haslo']))
+            {
+                //Wyświetlenie treści błędu na ekranie
+               echo '<div class="error">'.$_SESSION['e_haslo'].'</div>';
+               
+               //Czyszczenie zmiennej sesyjnej aby informacja o błędzie nie wyświetlała się naniesieniu poprawek 
+               unset($_SESSION['e_haslo']);
+            }
+            
+        ?>
         
         Powtórz hasło: <br/><input type="password" name="haslo2" /><br/>
         
