@@ -6,7 +6,7 @@
     //Jeżeli nie jest ustawiona zmienna "login" lub "haslo", w globalnej tablicy POST 
     if(!isset($_POST['login']) || (!isset($_POST['haslo'])))
     {
-        //Przekierowanie użytkownika do pliku index.php
+        //Przekierowanie użytkownika do pliku "index.php"
         header('Location: index.php');
         
         //Wstrzymanie dalszego wykonywania skryptu

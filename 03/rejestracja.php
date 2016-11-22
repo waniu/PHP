@@ -126,20 +126,122 @@
             $_SESSION['e_bot'] = "Potwierdź, że nie jesteś botem!";
         }
         
-        //-----------------------SPRAWDZANIE POPRAWNOŚCI CAŁEGO FORMULARZA-------------------------------
+        //------------------SPRAWDZANIE CZY UŻYTKOWNIKA NIE MA W BAZIE DANYCH----------------------
         
-        //Waruek sprawdzający czy formularz przeszedł wszystkie testy
-        if($wszystko_OK==true)
+        //Wyciąga dane, potrzebna do połączenia z bazą danych z pliku connect.php
+        //reqiure - funkcja WYMAGA istnienia pliku | once - funkcja sprawdzi czy nie zostało to powtórzone w kodzie
+        require_once "connect.php";
+        
+        //Funkcja "mysqli_report" ustawia sposób raportowania błędów
+        //Stała "MYSQLI_REPORT_STRICT" informuje PHP, że chcemy wyjątki zamiast ostrzeżeń
+        mysqli_report(MYSQLI_REPORT_STRICT);
+        
+        //Spróbuj
+        try
         {
-            //
-            echo "Udana walidacja!";
+            //Połączenie z bazą danych, przy pomocy instancji, klasy MySQLi
+            $polaczenie = new mysqli($host, $db_user, $db_password, $db_name);
             
-            exit();
+            //Jeżeli wystąpił błąd połączenia inny niż 0
+            //connect_errno - atrybut obiektu $polaczenie
+            //connect_errno = 0 oznacza, że ostatnia próba połączenia się z bazą zakończyła się sukcesem
+            if($polaczenie->connect_errno!=0)
+            {
+                //Rzuć nowe wyjątki
+                //Funkcja "msqli_connect_errno()" wyrzuca odpowiedni do sytuacji opis
+                throw new Exception(mysqli_connect_errno());
+            }
+            
+            //Brak błędów połączenia
+            else
+            {   
+                //------------SPRAWDZENIE ISTNIENIA ADRESU EMAIL W BAZIE DANYCH--------------------------
+                
+                //Zmienna przechowuje zapytanie do bazy danych
+                $rezultat = $polaczenie->query("SELECT id FROM uzytkownicy WHERE email='$email'");
+                
+                //Jeżeli jako wynik zapytania otrzymamy "false"
+                if(!$rezultat)
+                {   
+                    //Rzuć nowym wyjątkiem i pokaż na ekranie automatycznie wygenerowany opis błędu
+                    throw new Exception($polaczenie->error);
+                }
+                
+                //Zmienna przechowująca liczbę wierszy zawierających taki rekord "email" jak podany w formularzu
+                $ile_takich_maili = $rezultat->num_rows;
+                
+                if($ile_takich_maili>0)
+                {
+                    //Flaga udanej walidacji przestawiona na "false"
+                    $wszystko_OK = false;
+                    
+                    //Zmienna sesyjna błędu, dotycząca istnienia konta przypisanego do adresu
+                    $_SESSION['e_email'] = "Istnieje już konto przypisane do tego adresu e-mail!";
+                }
+                
+                //------------SPRAWDZENIE ISTNIENIA NAZWY UŻYTKOWNIKA W BAZIE DANYCH--------------------------
+                
+                //Zmienna przechowuje zapytanie do bazy danych
+                $rezultat = $polaczenie->query("SELECT id FROM uzytkownicy WHERE user='$nick'");
+                
+                //Jeżeli jako wynik zapytania otrzymamy "false"
+                if(!$rezultat)
+                {   
+                    //Rzuć nowym wyjątkiem i pokaż na ekranie automatycznie wygenerowany opis błędu
+                    throw new Exception($polaczenie->error);
+                }
+                
+                //Zmienna przechowująca liczbę wierszy zawierających taki rekord "email" jak podany w formularzu
+                $ilu_takich_uzytkownikow = $rezultat->num_rows;
+                
+                if($ilu_takich_uzytkownikow>0)
+                {
+                    //Flaga udanej walidacji przestawiona na "false"
+                    $wszystko_OK = false;
+                    
+                    //Zmienna sesyjna błędu, dotycząca istnienia konta przypisanego do adresu
+                    $_SESSION['e_nick'] = "Istnieje już gracz o takim nicku. Wybierz inny!";
+                }
+                
+                //------------------------DODAWANIE NOWEGO UŻYTKOWNIKA DO BAZY-------------------------------
+                
+                //Waruek sprawdzający czy formularz przeszedł wszystkie testy
+                if($wszystko_OK==true)
+                {
+                    //Jeżeli dodanie nowego użytkownika się udało
+                    if($polaczenie->query("INSERT INTO uzytkownicy VALUES (NULL, '$nick', '$haslo_hash', '$email', 100, 100, 100, 14)"))
+                    {
+                        //Flaga udanej rejestracji
+                        $_SESSION['udana_rejestracja']=true;
+                        
+                        //Przekierowanie użytkownika do pliku "witamy.php"
+                        header('Location: witamy.php');
+                        
+                    }
+                    
+                    //Jeżeli dodanie nowego użytkownika się nie udało
+                    else
+                    {
+                        //Rzuć nowym wyjątkiem i pokaż na ekranie automatycznie wygenerowany opis błędu
+                        throw new Exception($polaczenie->error);
+                    }
+                    
+                }
+                
+                
+                //Metoda zamykająca połączenie
+                $polaczenie->close();
+            }
         }
+        
+        //Złap wyjątek
+        catch(Exception $e)
+        {
+            echo '<span style="color: red;">Błąd serwera! Przepraszamy za niedogodności i prosimy o rejestrację w innym terminie!</span>';
+            echo '<br/>Informacja developerska: '.$e;
+        }
+          
     }
-    
-    
-    
     
 ?>
 

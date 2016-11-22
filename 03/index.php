@@ -5,10 +5,10 @@
     //Jeżeli istnieje zmienna sesyjna (flaga) 'zalogowany' i jest ustawiona na 'true'
     if((isset($_SESSION['zalogowany'])) && ($_SESSION['zalogowany']==true))
     {
-        //Przekierowanie użytkownika do pliku gra.php
+        //Przekierowanie użytkownika do pliku "gra.php"
         header('Location: gra.php');
         
-        //Funkcja kończąca przetwarzanie pliku index.php w tym miejscu
+        //Funkcja kończąca przetwarzanie pliku "index.php" w tym miejscu
         exit();
     }
 ?>
@@ -28,7 +28,7 @@
     <a href="rejestracja.php">Rejestracja - załóż darmowe konto!</a>
     <br/><br/>
     
-    <!--Formularz przesyłający login i hasło, do pliku zaloguj.php, metodą post-->
+    <!--Formularz przesyłający login i hasło, do pliku "zaloguj.php", metodą post-->
     <form action="zaloguj.php" method="post">
     
     Login: <br/> <input type="text" name="login"/><br/>
@@ -38,14 +38,15 @@
     </form>
     
     <?php
-    
-        //Jeżeli zmienna $_SESSION['blad'] istnieje (isset = ustawiona)
+        
+        //Jeżeli zmienna "$_SESSION['blad']" istnieje (isset = ustawiona)
         if(isset($_SESSION['blad']))
         {
             //Pokaż na ekranie treść zmiennej $_S...
             echo $_SESSION['blad'];
         }
-    
+        
+        unset($_SESSION['blad']);
     ?>
     
 </body>
