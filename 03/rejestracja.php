@@ -126,6 +126,21 @@
             $_SESSION['e_bot'] = "Potwierdź, że nie jesteś botem!";
         }
         
+        //-------------------------ZAPAMIĘTYWANIE DANYCH W FORMULARU-------------------------------
+        
+        $_SESSION['fr_nick'] = $nick;
+        $_SESSION['fr_email'] = $email;
+        $_SESSION['fr_haslo1'] = $haslo1;
+        $_SESSION['fr_haslo2'] = $haslo2;
+        
+        //Jeżeli istnieje zmienna "$_POST['regulamin']"
+        if(isset($_POST['regulamin']))
+        {
+            //Stwórz zmienną sesyjną "$_SESSION['fr_regulamin']" i nadaj jej wartość "true"
+            $_SESSION['fr_regulamin'] = true;
+        }
+        
+        
         //------------------SPRAWDZANIE CZY UŻYTKOWNIKA NIE MA W BAZIE DANYCH----------------------
         
         //Wyciąga dane, potrzebna do połączenia z bazą danych z pliku connect.php
@@ -273,7 +288,19 @@
     <!--Formularz rejestraci jest przetwarzany w tym samym pliku dlatego brak tutaj atrybutu "action"-->
     <form method="POST">
         
-        Nickname: <br/><input type="text" name="nick" /><br/>
+        Nickname: <br/><input type="text" name="nick" value="<?php
+            
+            //Jeżeli jest ustawiona zmienna sesyjna "$_SESSION['fr_nick']"
+            if(isset($_SESSION['fr_nick']))
+            {
+                //Pokaż ją na ekranie
+                echo $_SESSION['fr_nick'];
+                
+                //Usuń zmienną z sesji
+                unset($_SESSION['fr_nick']);
+            }
+            
+        ?>"/><br/>
         
         <?php
             
@@ -289,7 +316,20 @@
             
         ?>
         
-        E-mail: <br/><input type="text" name="email" /><br/>
+        E-mail: <br/><input type="text" name="email" value="<?php
+            
+            //Jeżeli jest ustawiona zmienna sesyjna "$_SESSION['fr_email']"
+            if(isset($_SESSION['fr_email']))
+            {
+                //Pokaż ją na ekranie
+                echo $_SESSION['fr_email'];
+                
+                //Usuń zmienną z sesji
+                unset($_SESSION['fr_email']);
+            }
+            
+        ?>"/><br/>
+        
         
         <?php
             
@@ -305,7 +345,19 @@
             
         ?>
         
-        Twoje hasło: <br/><input type="password" name="haslo1" /><br/>
+        Twoje hasło: <br/><input type="password" name="haslo1" value="<?php
+            
+            //Jeżeli jest ustawiona zmienna sesyjna "$_SESSION['fr_haslo1']"
+            if(isset($_SESSION['fr_haslo1']))
+            {
+                //Pokaż ją na ekranie
+                echo $_SESSION['fr_haslo1'];
+                
+                //Usuń zmienną z sesji
+                unset($_SESSION['fr_haslo1']);
+            }
+            
+        ?>"/><br/>
         
         <?php
             
@@ -321,11 +373,36 @@
             
         ?>
         
-        Powtórz hasło: <br/><input type="password" name="haslo2" /><br/>
+        Powtórz hasło: <br/><input type="password" name="haslo2" value="<?php
+            
+            //Jeżeli jest ustawiona zmienna sesyjna "$_SESSION['haslo2']"
+            if(isset($_SESSION['fr_haslo2']))
+            {
+                //Pokaż ją na ekranie
+                echo $_SESSION['fr_haslo2'];
+                
+                //Usuń zmienną z sesji
+                unset($_SESSION['fr_haslo2']);
+            }
+            
+        ?>"/><br/>
         
         <!--Znacznik "label" powoduje, że także kliknięcie napisu "Akceptuję regulamin" zaznacza checkboxa-->
         <label>
-            <input type="checkbox" name="regulamin"/> Akceptuję regulamin
+            <input type="checkbox" name="regulamin" <?php
+            
+            //Jeżeli istnieje zmienna sesyjna "$_SESSION['fr_regulamin']"
+            if(isset($_SESSION['fr_regulamin']))
+            {
+                //"Checked" w checkboxie oznacza, że jest on zaznaczony
+                echo "checked";
+                
+                ////Usuń zmienną z sesji
+                unset($_SESSION['fr_regulamin']);
+                
+            }
+            
+            ?>/> Akceptuję regulamin
         </label>
         
         <?php
