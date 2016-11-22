@@ -83,14 +83,48 @@
             $_SESSION['e_haslo'] = "Podane hasła muszą być identyczne!";
         }
         
-        //----------------------------------HASHOWANIE HASŁA---------------------------------------
+        //-----------------------------------HASHOWANIE HASŁA--------------------------------------------
         
         //Zmienna przechowująca hasło po zahashowaniu
         //Funkacja hashująca, "password_hash" jako argumenty przyjmuje co hashujemy i w jaki sposób
         //Stała PASSWORD_DEFAULT oznacza "Użyj najsilniejszego algorytmu jaki jest dostępny"
+        //Hashowanie hasła eliminuje potrzebę jego sanityzacji przed włożeniem do bazy danych
         $haslo_hash = password_hash($haslo1, PASSWORD_DEFAULT);
         
+        //---------------------------SPRAWDZENIE AKCEPTACJI REGULAMINU-----------------------------------
         
+        //Jeżeli NIE jest ustawiona zmienna "$_POST['regulamin]"
+        //Checkbox ma tę właściwość, że albo zwraca wartość "on" albo zmienna nie istnieje
+        if(!isset($_POST['regulamin']))
+        {
+            //Flaga udanej walidacji przestawiona na "false"
+            $wszystko_OK = false;
+            
+            //Zmienna sesyjna błędu, dotycząca zaznaczenia checkboxa
+            $_SESSION['e_regulamin'] = "Potwierdź akceptację regulamin!";
+        }
+        
+        //------------------------"BOT OR NOT" CZYLI SPRAWDZANIE CAPTCHY---------------------------------
+        
+        //Secret key reCAPTCHA
+        $sekret = "6Ld3bwwUAAAAAFw0QEbzbg0JeNI31Qo-gNSNepam";
+        
+        //Funkcja "file_get_contents()" zapisuje w zmiennej całą zawartość pliku o podnej ścieżce
+        //Łączymy się z serwerami Google ponieważ to one weryfikują capche
+        $sprawdz = file_get_contents('https://www.google.com/recaptcha/api/siteverify?secret='.$sekret.'&response='.$_POST['g-recaptcha-response']);
+        
+        //Odpowiedź od Google przychodzi w formacie "JSON - JavaScript Object Notation"
+        //Funkcja "json_decode" dekoduje przesłaną odpowiedź
+        $odpowiedz = json_decode($sprawdz);
+        
+        if($odpowiedz->success==false)
+        {
+            //Flaga udanej walidacji przestawiona na "false"
+            $wszystko_OK = false;
+            
+            //Zmienna sesyjna błędu, dotycząca zaznaczenia captchy
+            $_SESSION['e_bot'] = "Potwierdź, że nie jesteś botem!";
+        }
         
         //-----------------------SPRAWDZANIE POPRAWNOŚCI CAŁEGO FORMULARZA-------------------------------
         
@@ -187,13 +221,41 @@
         
         Powtórz hasło: <br/><input type="password" name="haslo2" /><br/>
         
-        <!--Znacznik "label" powoduje, że także kliknięcie "Akceptuję regulamin zaznacza checkboxa-->
+        <!--Znacznik "label" powoduje, że także kliknięcie napisu "Akceptuję regulamin" zaznacza checkboxa-->
         <label>
-            <input type="checkbox"/> Akceptuję regulamin
+            <input type="checkbox" name="regulamin"/> Akceptuję regulamin
         </label>
+        
+        <?php
+            
+            //Jeżeli jest ustawiona zmienna sesyjna błedu "e_regulamin"
+            if(isset($_SESSION['e_regulamin']))
+            {
+                //Wyświetlenie treści błędu na ekranie
+               echo '<div class="error">'.$_SESSION['e_regulamin'].'</div>';
+               
+               //Czyszczenie zmiennej sesyjnej aby informacja o błędzie nie wyświetlała się naniesieniu poprawek 
+               unset($_SESSION['e_regulamin']);
+            }
+            
+        ?>
         
         <!--reCAPTCHA-->
         <div class="g-recaptcha" data-sitekey="6Ld3bwwUAAAAAO98R_Ck416C1mb1zVx6eZY1vJvz"></div>
+        
+        <?php
+            
+            //Jeżeli jest ustawiona zmienna sesyjna błedu "e_bot"
+            if(isset($_SESSION['e_bot']))
+            {
+                //Wyświetlenie treści błędu na ekranie
+               echo '<div class="error">'.$_SESSION['e_bot'].'</div>';
+               
+               //Czyszczenie zmiennej sesyjnej aby informacja o błędzie nie wyświetlała się naniesieniu poprawek 
+               unset($_SESSION['e_bot']);
+            }
+            
+        ?>
         
         <br/>
         

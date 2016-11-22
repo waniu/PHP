@@ -39,7 +39,6 @@
         //ENT_QUOTES - zamienia na encje także cydzysłowia i apostrofy
         //UTF-8 - zestaw znaków używany na stronie
         $login = htmlentities($login, ENT_QUOTES, "UTF-8");
-        $haslo = htmlentities($haslo, ENT_QUOTES, "UTF-8");
         
         //Jeżeli rezultat zapytania to obiekt polaczenie i jego metoda o nazwie query (kwerenda - zapytanie do bazy)
         //Argumentem jest zapytanie do bazy danych
@@ -52,13 +51,12 @@
         sprintf(
         
         //Zapytanie do bazy danych MySQL
-        //Treść zapytania: Wybierz wszystkie kolumny, z tabeli uzytkownicy, w których user='%s' & pass='%s' przesłane metodą POST, z formularza
-        //WAŻNE!! Całe zapytanie zapisujemy w cudzysłowie a zmnienne PHP, będące łańcuchami, w apostrofach
-        "SELECT * FROM uzytkownicy WHERE user='%s' AND pass='%s'",
+        //Treść zapytania: Wybierz wszystkie kolumny, z tabeli uzytkownicy, w których user='%s' przesłane metodą POST, z formularza
+        //WAŻNE!! Całe zapytanie zapisujemy w cudzysłowie a zmnienne PHP, będące łańcuchami w apostrofach
+        "SELECT * FROM uzytkownicy WHERE user='%s'",
         
         //Funkcja chroniąca przed różnymi technikami wstrzykiwania SQL
-        mysqli_real_escape_string($polaczenie, $login),
-        mysqli_real_escape_string($polaczenie, $haslo))))
+        mysqli_real_escape_string($polaczenie, $login))))
         {
             //Ta zmienna przechowuje ilość rekordów, pasujących do podanych danych
             $ilu_userow = $rezultat->num_rows;
@@ -66,31 +64,46 @@
             //Jeżeli użytkownik jest w bazie
             if($ilu_userow>0)
             {   
-                //Flaga, że jesteśmy zalogowani
-                $_SESSION['zalogowany'] = true;
-            
                 //Ta zmienna przechowuje wszystkie pobrane z bazy kolumny przy pomocy tablicy asocjacyjnej
                 //Tablica asocjacyjna zamiast numerów używa nazw kolumn z tabeli w indeksach
                 $wiersz = $rezultat->fetch_assoc();
                 
-                //$_SESSION - globalna tablica asocjacyjna zmiennych, dostępna dla wszystkich plików
-                //Ta zmienna przechowuje informacje z tablicy $wiersz o indeksie 'id'
-                $_SESSION['id'] = $wiersz['id'];
-                $_SESSION['user'] = $wiersz['user'];
-                $_SESSION['drewno'] = $wiersz['drewno'];
-                $_SESSION['kamien'] = $wiersz['kamien'];
-                $_SESSION['zboze'] = $wiersz['zboze'];
-                $_SESSION['email'] = $wiersz['email'];
-                $_SESSION['dnipremium'] = $wiersz['dnipremium'];
-                
-                //Usuwa zmienna $_SESSION['blad'] z sesji
-                unset($_SESSION['blad']);
-                
-                //Czyści z pamięci serwera wszystkie rekordy zapisane w zmiennej $rezultat
-                $rezultat->close();
-                
-                //Przekierowanie użytkownika do pliku gra.php
-                header('Location: gra.php');
+                //Funkcja porównująca hasło z wpisane przez użytkownika z hashem hasła w bazie danych
+                //Funkcja zwraca true jeśli hasła pasują
+                if(password_verify($haslo, $wiersz['pass']))
+                {
+                    //Flaga, że jesteśmy zalogowani
+                    $_SESSION['zalogowany'] = true;
+                    
+                    //$_SESSION - globalna tablica asocjacyjna zmiennych, dostępna dla wszystkich plików
+                    //Ta zmienna przechowuje informacje z tablicy $wiersz o indeksie 'id'
+                    $_SESSION['id'] = $wiersz['id'];
+                    $_SESSION['user'] = $wiersz['user'];
+                    $_SESSION['drewno'] = $wiersz['drewno'];
+                    $_SESSION['kamien'] = $wiersz['kamien'];
+                    $_SESSION['zboze'] = $wiersz['zboze'];
+                    $_SESSION['email'] = $wiersz['email'];
+                    $_SESSION['dnipremium'] = $wiersz['dnipremium'];
+                    
+                    //Usuwa zmienna $_SESSION['blad'] z sesji
+                    unset($_SESSION['blad']);
+                    
+                    //Czyści z pamięci serwera wszystkie rekordy zapisane w zmiennej $rezultat
+                    $rezultat->close();
+                    
+                    //Przekierowanie użytkownika do pliku gra.php
+                    header('Location: gra.php');
+                }
+            
+                //Jeżeli użytkownika nie ma w bazie lub podano błędne dane
+                else
+                {
+                    //Informacja o błędzie, przechowana w zmiennej sesyjnej
+                    $_SESSION['blad'] = '<span style="color: red;">Nieprawidłowy login lub hasło!</span>';
+                    
+                    //Przekierowanie użytkownika do pliku index.php
+                    header('Location: index.php');
+                }
             }
             //Jeżeli użytkownika nie ma w bazie lub podano błędne dane
             else
